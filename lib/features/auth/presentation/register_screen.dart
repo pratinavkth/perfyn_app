@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/auth/presentation/login_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
+import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -53,7 +54,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           ),
         );
-        context.go('/home');
+        context.go(HomeScreen.routePath);
       },
       error: (error, _) {
         messenger.showSnackBar(

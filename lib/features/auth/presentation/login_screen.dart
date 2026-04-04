@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/auth/presentation/register_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
+import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -43,10 +44,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final state = ref.read(authControllerProvider);
     state.whenOrNull(
       data: (_) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Logged in successfully.')),
-        );
-        context.go('/home');
+        final session = ref.read(currentSessionProvider);
+        if (session != null) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Logged in successfully.')),
+          );
+          context.go(HomeScreen.routePath);
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'No active session was created. Check your email confirmation settings or credentials.',
+              ),
+            ),
+          );
+        }
       },
       error: (error, _) {
         messenger.showSnackBar(SnackBar(content: Text(error.toString())));

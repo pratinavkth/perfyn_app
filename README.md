@@ -18,14 +18,16 @@
 - `lib/app/providers/app_providers.dart`
   - Added `supabaseClientProvider`
 
-- `lib/features/auth/providers/auth_prov-+ider.dart`
+- `lib/features/auth/providers/auth_provider.dart`
   - Added `currentSessionProvider`
   - Added `authStateChangesProvider`
   - Added `authControllerProvider`
+  - Added router refresh listener for auth state changes
   - Added auth methods:
     - `signIn`
     - `signUp`
     - `signOut`
+  - Uses Supabase persisted session for login retention
 
 ### Theme
 - `lib/core/theme/app_colors.dart`
@@ -43,8 +45,10 @@
     - splash
     - login
     - register
-    - temporary home placeholder
-  - Added temporary signed-in home screen with sign-out button
+    - dashboard home
+  - Added auth-aware redirects for signed-in and signed-out users
+  - Redirects authenticated users directly to home
+  - Redirects unauthenticated users away from protected home route
 
 ### Auth screens
 - `lib/features/auth/presentation/splash_screen.dart`
@@ -58,12 +62,39 @@
   - Added form validation
   - Connected Supabase sign-in
   - Added navigation to signup
+  - Added session check before redirecting to home
 
 - `lib/features/auth/presentation/register_screen.dart`
   - Created signup UI
   - Added form validation
   - Connected Supabase sign-up
   - Added navigation back to login
+
+### Dashboard
+- `lib/features/dashboard/presentation/home_screen.dart`
+  - Added first dashboard home screen after login
+  - Added greeting header
+  - Added quick add FAB placeholder
+  - Replaced direct logout icon with profile icon
+  - Added end drawer with:
+    - profile
+    - about us
+    - help
+    - logout
+
+- `lib/features/dashboard/providers/dashboard_provider.dart`
+  - Added initial dashboard overview provider with mock data
+
+- `lib/features/dashboard/presentation/widgets/balance_card.dart`
+  - Added total balance card
+  - Added income and expense summary
+  - Added savings rate progress bar
+
+- `lib/features/dashboard/presentation/widgets/spending_chart.dart`
+  - Added weekly spending visualization
+
+- `lib/features/dashboard/presentation/widgets/recent_transactions.dart`
+  - Added recent transactions list
 
 ## Dependency adjustment made
 
@@ -85,6 +116,9 @@ The auth flow foundation is now present:
 - theme
 - router
 - Supabase auth controller
+- session-aware redirects
+- dashboard home screen
+- profile drawer on dashboard
 
 ## Still pending
 
@@ -92,20 +126,16 @@ The auth flow foundation is now present:
 - Run `dart format`
 - Run `flutter analyze`
 - Run the app on device/emulator
-- Replace temporary `/home` placeholder with actual dashboard screen
 - Add onboarding screen if needed
 - Connect observer/logger if you want Riverpod logging
+- Replace mock dashboard data with real data from Supabase/Drift
+- Add real profile/settings screen behind the drawer action
 
 ## Remaining work plan
 
 
 
 ### Feature modules to build next
-- Dashboard feature
-  - home screen
-  - balance card
-  - spending chart
-  - recent transactions
 - Transactions feature
   - entities and DTOs
   - repository and datasource
@@ -162,4 +192,9 @@ We have created or planned the following PostgreSQL tables in Supabase:
   - stores app notification entries
 - `sync_queue`
   - stores queued sync actions for pending/offline operations
+
+## Notes
+
+- Supabase session persistence is being used, so users should remain logged in until the session is invalid or they explicitly log out.
+- Dashboard data is currently mocked for UI progress and still needs repository integration.
 

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/auth/presentation/login_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
+import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -54,7 +55,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _navigationTimer = Timer(const Duration(milliseconds: 2400), () {
       final session = ref.read(currentSessionProvider);
       if (!mounted) return;
-      context.go(session == null ? LoginScreen.routePath : '/home');
+      context.go(session == null ? LoginScreen.routePath : HomeScreen.routePath);
     });
   }
 
