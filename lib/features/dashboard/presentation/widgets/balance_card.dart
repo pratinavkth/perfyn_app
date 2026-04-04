@@ -22,6 +22,7 @@ class BalanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final normalizedSavingsRate = savingsRate.clamp(0.0, 1.0).toDouble();
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -79,7 +80,7 @@ class BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            'Savings rate ${(savingsRate * 100).toStringAsFixed(0)}%',
+            'Savings rate ${(normalizedSavingsRate * 100).toStringAsFixed(0)}%',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.84),
             ),
@@ -88,7 +89,7 @@ class BalanceCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
             child: LinearProgressIndicator(
-              value: savingsRate,
+              value: normalizedSavingsRate,
               minHeight: 10,
               backgroundColor: Colors.white.withValues(alpha: 0.18),
               color: AppColors.sand,

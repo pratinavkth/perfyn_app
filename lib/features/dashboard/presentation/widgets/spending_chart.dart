@@ -52,8 +52,9 @@ class SpendingChart extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: weeklySpending.map((entry) {
-                final heightFactor = maxAmount == 0 ? 0.0 : entry.amount / maxAmount;
-                final clampedHeight = heightFactor.clamp(0.08, 1.0).toDouble();
+                // final heightFactor = maxAmount == 0 ? 0.0 : entry.amount / maxAmount;
+                // final clampedHeight = heightFactor.clamp(0.08, 1.0).toDouble();
+                final clampedHeight = maxAmount <= 0? 0.0: (entry.amount / maxAmount).clamp(0.0, 1.0).toDouble();
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
