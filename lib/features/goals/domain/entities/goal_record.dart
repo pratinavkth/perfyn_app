@@ -1,3 +1,5 @@
+import 'package:perfyn_app/core/database/app_database.dart';
+
 /// Goal types supported by the app.
 enum GoalType {
   savings,
@@ -9,6 +11,7 @@ enum GoalType {
 class GoalRecord {
   const GoalRecord({
     required this.id,
+    this.localId,
     required this.userId,
     required this.title,
     required this.targetAmount,
@@ -19,6 +22,7 @@ class GoalRecord {
   });
 
   final String id;
+  final int? localId;
   final String userId;
   final String title;
   final double targetAmount;
@@ -26,6 +30,20 @@ class GoalRecord {
   final DateTime? deadline;
   final GoalType type;
   final DateTime createdAt;
+
+  factory GoalRecord.fromDb(GoalsTableData data) {
+    return GoalRecord(
+      localId: data.localId,
+      id: data.remoteId ?? 'local_${data.localId}',
+      userId: data.userId,
+      title: data.title,
+      targetAmount: data.targetAmount ?? 0,
+      currentAmount: data.currentAmount,
+      type: _parseGoalType(data.type),
+      deadline: data.deadline,
+      createdAt: data.createdAt,
+    );
+  }
 
   /// Whether this goal tracks days instead of money.
   bool get isDaysBased => type == GoalType.noSpend;

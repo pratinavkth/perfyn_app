@@ -1,8 +1,11 @@
+import 'package:perfyn_app/core/database/app_database.dart';
+
 enum TransactionType { income, expense }
 
 class TransactionRecord {
   const TransactionRecord({
-    required this.id,
+    required this.id, // Fallbacks to 'local_$localId' if remoteId is null
+    this.localId,     // Populated when retrieved from local Drift DB
     required this.userId,
     required this.amount,
     required this.type,
@@ -13,6 +16,7 @@ class TransactionRecord {
   });
 
   final String id;
+  final int? localId;
   final String userId;
   final double amount;
   final TransactionType type;
@@ -22,6 +26,21 @@ class TransactionRecord {
   final DateTime createdAt;
 
   bool get isExpense => type == TransactionType.expense;
+
+  /// Deserializes a Drift row into a [TransactionRecord].
+  factory TransactionRecord.fromDb(TransactionsTableData data) {
+    return TransactionRecord(
+      localId: data.localId,
+      id: data.remoteId ?? 'local_${data.localId}',
+      userId: data.userId,
+      amount: data.amount,
+      type: data.type == 'income' ? TransactionType.income : TransactionType.expense,
+      category: data.category,
+      date: data.date,
+      notes: data.notes,
+      createdAt: data.createdAt,
+    );
+  }
 
   /// Deserializes a Supabase row into a [TransactionRecord].
   ///

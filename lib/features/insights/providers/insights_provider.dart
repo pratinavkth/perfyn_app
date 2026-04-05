@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:perfyn_app/features/goals/domain/entities/goal_record.dart';
+import 'package:perfyn_app/features/goals/providers/goal_provider.dart';
 import 'package:perfyn_app/features/transactions/domain/entities/transaction_record.dart';
 import 'package:perfyn_app/features/transactions/providers/transaction_provider.dart';
 
 /// Computed insights derived from the user's transactions.
 final insightsProvider = FutureProvider.autoDispose<InsightsData>((ref) async {
   final transactions = await ref.watch(transactionsProvider.future);
+  final goals = await ref.watch(goalsProvider.future);
 
   final now = DateTime.now();
 
@@ -24,12 +27,18 @@ final insightsProvider = FutureProvider.autoDispose<InsightsData>((ref) async {
   final totalMonthExpense =
       categoryMap.values.fold(0.0, (sum, val) => sum + val);
 
+  final budgetGoals = goals.where((g) => g.type == GoalType.budget).toList();
+
   final categoryBreakdown = categoryMap.entries.map((entry) {
+    // Try to find a budget goal with a title matching the category
+    final matchingBudget = budgetGoals.where((g) => g.title.toLowerCase() == entry.key.toLowerCase()).firstOrNull;
+
     return CategorySpend(
       category: entry.key,
       amount: entry.value,
       percentage:
           totalMonthExpense > 0 ? entry.value / totalMonthExpense : 0,
+      budgetLimit: matchingBudget?.targetAmount,
     );
   }).toList()
     ..sort((a, b) => b.amount.compareTo(a.amount));
@@ -123,6 +132,7 @@ class CategorySpend {
     required this.category,
     required this.amount,
     required this.percentage,
+    this.budgetLimit,
   });
 
   final String category;
@@ -130,4 +140,7 @@ class CategorySpend {
 
   /// Fraction from 0.0 to 1.0 of total monthly expense.
   final double percentage;
+  
+  /// The target budget limit for this category, if any.
+  final double? budgetLimit;
 }

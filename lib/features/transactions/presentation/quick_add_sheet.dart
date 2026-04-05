@@ -37,7 +37,27 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
       : TransactionCategories.income;
 
   @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(_onFormUpdated);
+  }
+
+  void _onFormUpdated() {
+    setState(() {});
+  }
+
+  bool get _isFormValid {
+    final amountText = _amountController.text.trim();
+    if (amountText.isEmpty) return false;
+    final amount = double.tryParse(amountText);
+    if (amount == null || amount <= 0) return false;
+    if (_selectedCategory == null) return false;
+    return true;
+  }
+
+  @override
   void dispose() {
+    _amountController.removeListener(_onFormUpdated);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
@@ -47,7 +67,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
-    final submitState = ref.watch(quickAddControllerProvider);
+    final submitState = ref.watch(transactionControllerProvider);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(12, 12, 12, viewInsets + 12),
@@ -312,7 +332,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: submitState.isLoading ? null : _submit,
+                    onPressed: (submitState.isLoading || !_isFormValid) ? null : _submit,
                     icon: submitState.isLoading
                         ? const SizedBox(
                             width: 18,
@@ -364,7 +384,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
       return;
     }
 
-    final errorMessage = await ref.read(quickAddControllerProvider.notifier).submit(
+    final errorMessage = await ref.read(transactionControllerProvider.notifier).addTransaction(
           amount: amount,
           type: _type,
           category: _selectedCategory!,

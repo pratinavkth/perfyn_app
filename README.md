@@ -2,6 +2,11 @@
 
 ## What has been done
 
+### Offline-First Architecture (Drift + Supabase)
+- **Embedded Database:** Added `drift` (SQLite) as the primary edge database for lightning-fast performance without network latency.
+- **DAOs:** Created `TransactionsDao` and `GoalsDao` mapping to local tables (`transactions`, `goals`) and `SyncQueueDao` mapping to a background queue.
+- **Sync Manager:** Added `SyncManager` which runs a `flushQueue()` process natively in the background upon internet connectivity restoration (monitored by `app.dart`). It resolves Supabase IDs and updates local SQL rows autonomously.
+- **Riverpod Streaming:** Replaced network-heavy `FutureProvider` fetchers with `StreamProvider` listeners observing SQLite `watchAll` queries. Offline mutations are instantaneously reflected without spinners. 
 ### App shell
 - `lib/main.dart`
   - Loads `.env`
@@ -119,6 +124,8 @@
 
 - `lib/features/transactions/presentation/transactions_screen.dart`
   - Full transaction list with real Supabase data
+  - Search bar and filter chips (All, Income, Expense)
+  - Swipe-to-delete functionality (deletes locally immediately, pushes remote delete in background)
   - Quick add action card
   - Loading, error, empty states
   - Pull-to-refresh
@@ -163,6 +170,11 @@
   - Title and target amount inputs
   - Optional deadline date picker
   - Saves to Supabase on submit
+
+- `lib/features/goals/presentation/goal_detail_screen.dart`
+  - Dedicated screen with gorgeous animated circular progress rings. 
+  - Integrated Milestone tracking chips (25%, 50%, 75%, 100%).
+  - Provides progress updation logic baked into the state manager.
 
 ### Insights (Tab 4)
 - `lib/features/insights/providers/insights_provider.dart`
@@ -214,10 +226,10 @@ All four navbar tab screens are functional and connected to Supabase:
 
 | Tab | Screen | Supabase Table | Status |
 |-----|--------|----------------|--------|
-| Tab 1 — Home | `HomeScreen` | `transactions` (derived) |  Connected |
-| Tab 2 — Txn | `TransactionsScreen` | `transactions` |  Connected |
-| Tab 3 — Goals | `GoalsScreen` | `goals` |  Connected |
-| Tab 4 — Insights | `InsightsScreen` | `transactions` (derived) |  Connected |
+| Tab 1 — Home | `HomeScreen` | `transactions` (derived) | ✅ Read & Computed Locally |
+| Tab 2 — Txn | `TransactionsScreen` | `transactions` | ✅ Full CRUD (Add, Edit, Swipe-Delete) |
+| Tab 3 — Goals | `GoalsScreen` | `goals` | ✅ Detailed rings, Edit Progress UI |
+| Tab 4 — Insights | `InsightsScreen` | `transactions` (derived) | ✅ Live Local Rendering using `fl_chart` |
 
 Additional working flows:
 - Auth flow (splash → login/register → home)
@@ -232,16 +244,6 @@ Additional working flows:
 ## Still pending
 
 ### Feature modules to build next
-- Transactions feature
-  - edit and delete transaction flows
-  - filter by category, date range, search
-- Goals feature
-  - goal detail screen (S-11)
-  - no-spend challenge tracking logic
-  - goal progress update flow
-- Insights feature
-  - category drill-down screen (S-12)
-  - fl_chart integration for pie/bar charts
 - Settings feature
   - profile/settings screen (S-13)
   - dark mode toggle
@@ -259,8 +261,6 @@ Additional working flows:
 - Wire shared widgets (amount_display, empty_state, error_state, loading_shimmer)
 
 ### Backend integration work still pending
-- Add Drift (SQLite) for offline-first local storage
-- Add sync queue processing for offline mutations
 - Add profile-based user data handling (profiles table)
 - Add notification fetch and display flow (notifications table)
 - Add no-spend challenge tracking (nospend_challenge table)
@@ -281,6 +281,7 @@ We have created or planned the following PostgreSQL tables in Supabase:
 ## Notes
 
 - Supabase session persistence is being used, so users remain logged in until the session is invalid or they explicitly log out.
+- You can turn off your device's WiFi and fully mutate Goals and Transactions without any app crashes. Data resolves directly on reconnections via `SyncManager` auto-dispatch!
 - Dashboard data is computed from real Supabase transaction data (not mocked).
 - Insights are derived from the same transactions provider — no separate Supabase queries needed.
 - All empty scaffold files (`data/`, `domain/`, `usecases/`) are preserved for future feature development.
