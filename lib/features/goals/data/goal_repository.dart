@@ -43,16 +43,26 @@ class GoalRepository {
   /// Update the current amount saved towards a goal.
   Future<void> updateGoalProgress({
     required String goalId,
+    required String userId,
     required double currentAmount,
   }) async {
-    await _client.from('goals').update({
-      'current_amount': currentAmount,
-    }).eq('id', goalId);
+    await _client
+        .from('goals')
+        .update({'current_amount': currentAmount})
+        .eq('id', goalId)
+        .eq('user_id', userId);
   }
 
-  /// Delete a goal by its ID.
-  Future<void> deleteGoal(String goalId) async {
-    await _client.from('goals').delete().eq('id', goalId);
+  /// Delete a goal by its ID, scoped to the owning user.
+  Future<void> deleteGoal({
+    required String goalId,
+    required String userId,
+  }) async {
+    await _client
+        .from('goals')
+        .delete()
+        .eq('id', goalId)
+        .eq('user_id', userId);
   }
 
   String _formatDate(DateTime value) {

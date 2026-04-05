@@ -26,9 +26,10 @@ class TransactionsScreen extends ConsumerWidget {
       child: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.invalidate(transactionsProvider);
+            await ref.refresh(transactionsProvider.future);
           },
           child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
             children: [
               Row(

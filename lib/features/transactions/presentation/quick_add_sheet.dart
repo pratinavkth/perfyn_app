@@ -379,8 +379,10 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
       return;
     }
 
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    navigator.pop();
+    messenger.showSnackBar(
       SnackBar(
         content: Text(
           '${_type == TransactionType.expense ? 'Expense' : 'Income'} saved for Rs ${amount.toStringAsFixed(0)} in $_selectedCategory.',

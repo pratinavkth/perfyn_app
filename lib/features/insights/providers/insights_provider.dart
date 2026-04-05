@@ -105,10 +105,14 @@ class InsightsData {
   final double monthlyExpense;
   final int monthTransactionCount;
 
+  /// Whether there is any spending data from last week to compare against.
+  bool get hasPriorWeekSpend => lastWeekSpending > 0;
+
   /// Percentage change from last week to this week.
   /// Positive = spending more, Negative = spending less.
-  double get weeklyChange {
-    if (lastWeekSpending <= 0) return 0;
+  /// Returns `null` when there is no prior-week spend (zero baseline).
+  double? get weeklyChange {
+    if (lastWeekSpending <= 0) return null;
     return ((thisWeekSpending - lastWeekSpending) / lastWeekSpending);
   }
 }

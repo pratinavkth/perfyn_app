@@ -11,6 +11,8 @@ final authStateChangesProvider = StreamProvider<AuthState>((ref) {
 });
 
 final currentSessionProvider = Provider<Session?>((ref) {
+  // Re-evaluate whenever auth state changes (login, logout, token refresh).
+  ref.watch(authStateChangesProvider);
   final client = ref.watch(supabaseClientProvider);
   return client.auth.currentSession;
 });

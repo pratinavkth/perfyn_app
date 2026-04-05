@@ -27,9 +27,22 @@ class GoalRecord {
   final GoalType type;
   final DateTime createdAt;
 
+  /// Whether this goal tracks days instead of money.
+  bool get isDaysBased => type == GoalType.noSpend;
+
   /// Progress from 0.0 to 1.0.
   double get progress =>
       targetAmount <= 0 ? 0 : (currentAmount / targetAmount).clamp(0.0, 1.0);
+
+  /// Human-readable current value ("Rs 5000" or "Day 3").
+  String get formattedCurrent => isDaysBased
+      ? 'Day ${currentAmount.toStringAsFixed(0)}'
+      : 'Rs ${currentAmount.toStringAsFixed(0)}';
+
+  /// Human-readable target value ("Rs 10000" or "7 days").
+  String get formattedTarget => isDaysBased
+      ? '${targetAmount.toStringAsFixed(0)} days'
+      : 'Rs ${targetAmount.toStringAsFixed(0)}';
 
   /// Whether the goal has been fully achieved.
   bool get isCompleted => progress >= 1.0;

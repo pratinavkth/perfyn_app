@@ -27,8 +27,10 @@ class InsightsScreen extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(transactionsProvider);
             ref.invalidate(insightsProvider);
+            await ref.read(insightsProvider.future);
           },
           child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
             children: [
               Row(
@@ -305,9 +307,11 @@ class _WeeklyComparisonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final changePercent = (data.weeklyChange * 100).abs().toStringAsFixed(0);
-    final isUp = data.weeklyChange > 0;
-    final isFlat = data.weeklyChange == 0;
+    final change = data.weeklyChange;
+    final hasBaseline = change != null;
+    final changePercent = hasBaseline ? (change * 100).abs().toStringAsFixed(0) : '0';
+    final isUp = hasBaseline && change > 0;
+    final isFlat = hasBaseline && change == 0;
 
     return Container(
       padding: const EdgeInsets.all(22),
@@ -375,31 +379,39 @@ class _WeeklyComparisonCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  isFlat
-                      ? Icons.remove_rounded
-                      : isUp
-                          ? Icons.trending_up_rounded
-                          : Icons.trending_down_rounded,
+                  !hasBaseline
+                      ? Icons.info_outline_rounded
+                      : isFlat
+                          ? Icons.remove_rounded
+                          : isUp
+                              ? Icons.trending_up_rounded
+                              : Icons.trending_down_rounded,
                   size: 18,
-                  color: isFlat
+                  color: !hasBaseline
                       ? AppColors.slate
-                      : isUp
-                          ? AppColors.coral
-                          : AppColors.success,
+                      : isFlat
+                          ? AppColors.slate
+                          : isUp
+                              ? AppColors.coral
+                              : AppColors.success,
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isFlat
-                      ? 'Same as last week'
-                      : isUp
-                          ? '$changePercent% more than last week'
-                          : '$changePercent% less than last week',
+                  !hasBaseline
+                      ? 'No prior week data'
+                      : isFlat
+                          ? 'Same as last week'
+                          : isUp
+                              ? '$changePercent% more than last week'
+                              : '$changePercent% less than last week',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isFlat
+                    color: !hasBaseline
                         ? AppColors.slate
-                        : isUp
-                            ? AppColors.coral
-                            : AppColors.success,
+                        : isFlat
+                            ? AppColors.slate
+                            : isUp
+                                ? AppColors.coral
+                                : AppColors.success,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),

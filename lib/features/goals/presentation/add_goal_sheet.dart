@@ -331,8 +331,10 @@ class _AddGoalSheetState extends ConsumerState<AddGoalSheet> {
       return;
     }
 
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    navigator.pop();
+    messenger.showSnackBar(
       SnackBar(
         content: Text('Goal "$title" created successfully.'),
       ),

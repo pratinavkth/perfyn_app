@@ -20,8 +20,9 @@ final goalsProvider = FutureProvider.autoDispose<List<GoalRecord>>((ref) async {
 });
 
 /// Controller for goal mutations (add, update progress, delete).
+/// Not autoDispose — survives async mutations that outlive the calling widget.
 final goalControllerProvider =
-    StateNotifierProvider.autoDispose<GoalController, AsyncValue<void>>((ref) {
+    StateNotifierProvider<GoalController, AsyncValue<void>>((ref) {
   final repository = ref.watch(goalRepositoryProvider);
   return GoalController(ref, repository);
 });
@@ -69,11 +70,15 @@ class GoalController extends StateNotifier<AsyncValue<void>> {
     required String goalId,
     required double currentAmount,
   }) async {
+    final session = _ref.read(currentSessionProvider);
+    if (session == null) return 'You need to sign in.';
+
     state = const AsyncLoading();
 
     try {
       await _repository.updateGoalProgress(
         goalId: goalId,
+        userId: session.user.id,
         currentAmount: currentAmount,
       );
 
@@ -88,10 +93,16 @@ class GoalController extends StateNotifier<AsyncValue<void>> {
 
   /// Delete a goal by ID.
   Future<String?> deleteGoal(String goalId) async {
+    final session = _ref.read(currentSessionProvider);
+    if (session == null) return 'You need to sign in.';
+
     state = const AsyncLoading();
 
     try {
-      await _repository.deleteGoal(goalId);
+      await _repository.deleteGoal(
+        goalId: goalId,
+        userId: session.user.id,
+      );
 
       state = const AsyncData(null);
       _ref.invalidate(goalsProvider);

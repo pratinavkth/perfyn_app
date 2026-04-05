@@ -26,7 +26,7 @@ class GoalsScreen extends ConsumerWidget {
       child: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.invalidate(goalsProvider);
+            await ref.refresh(goalsProvider.future);
           },
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
@@ -320,14 +320,14 @@ class _GoalCard extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Rs ${goal.currentAmount.toStringAsFixed(0)}',
+                          goal.formattedCurrent,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: accent,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         Text(
-                          'of Rs ${goal.targetAmount.toStringAsFixed(0)}',
+                          'of ${goal.formattedTarget}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: AppColors.slate,
                           ),

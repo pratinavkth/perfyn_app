@@ -13,7 +13,9 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
 final transactionsProvider = FutureProvider.autoDispose<List<TransactionRecord>>((
   ref,
 ) async {
-  final session = ref.watch(currentSessionProvider);
+  // Depend on auth state so this re-evaluates on login/logout.
+  ref.watch(currentSessionProvider);
+  final session = ref.read(currentSessionProvider);
   if (session == null) {
     return const [];
   }
@@ -22,8 +24,10 @@ final transactionsProvider = FutureProvider.autoDispose<List<TransactionRecord>>
   return repository.fetchTransactions(session.user.id);
 });
 
+/// Controller for quick-add mutations.
+/// Not autoDispose — survives async Supabase calls that outlive the calling widget.
 final quickAddControllerProvider =
-    StateNotifierProvider.autoDispose<QuickAddController, AsyncValue<void>>((ref) {
+    StateNotifierProvider<QuickAddController, AsyncValue<void>>((ref) {
       final repository = ref.watch(transactionRepositoryProvider);
       return QuickAddController(ref, repository);
     });
