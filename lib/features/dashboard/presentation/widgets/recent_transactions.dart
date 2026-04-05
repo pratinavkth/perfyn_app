@@ -44,7 +44,15 @@ class RecentTransactions extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          ...items.map((item) => _TransactionRow(item: item)),
+          if (items.isEmpty)
+            Text(
+              'No transactions yet. Use Quick add to create your first one.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.slate,
+              ),
+            )
+          else
+            ...items.map((item) => _TransactionRow(item: item)),
         ],
       ),
     );
