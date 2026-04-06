@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 
+import 'package:perfyn_app/shared/extensions/currency_extension.dart';
+
 class BalanceCard extends StatelessWidget {
   const BalanceCard({
     super.key,
@@ -16,7 +18,7 @@ class BalanceCard extends StatelessWidget {
   final double savingsRate;
 
   String _formatAmount(double amount) {
-    return 'Rs ${amount.toStringAsFixed(0)}';
+    return amount.toINR();
   }
 
   @override

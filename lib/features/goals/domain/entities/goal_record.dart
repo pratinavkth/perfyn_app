@@ -1,4 +1,5 @@
 import 'package:perfyn_app/core/database/app_database.dart';
+import 'package:perfyn_app/shared/extensions/currency_extension.dart';
 
 /// Goal types supported by the app.
 enum GoalType {
@@ -52,15 +53,15 @@ class GoalRecord {
   double get progress =>
       targetAmount <= 0 ? 0 : (currentAmount / targetAmount).clamp(0.0, 1.0);
 
-  /// Human-readable current value ("Rs 5000" or "Day 3").
-  String get formattedCurrent => isDaysBased
-      ? 'Day ${currentAmount.toStringAsFixed(0)}'
-      : 'Rs ${currentAmount.toStringAsFixed(0)}';
+  /// Human-readable current value ("Rs 5,000" or "3 days").
+  String get formattedCurrent => type == GoalType.noSpend
+      ? '${currentAmount.toInt()} days'
+      : currentAmount.toINR();
 
-  /// Human-readable target value ("Rs 10000" or "7 days").
-  String get formattedTarget => isDaysBased
-      ? '${targetAmount.toStringAsFixed(0)} days'
-      : 'Rs ${targetAmount.toStringAsFixed(0)}';
+  /// Human-readable target value ("Rs 10,000" or "7 days").
+  String get formattedTarget => type == GoalType.noSpend
+      ? '${targetAmount.toInt()} days'
+      : targetAmount.toINR();
 
   /// Whether the goal has been fully achieved.
   bool get isCompleted => progress >= 1.0;

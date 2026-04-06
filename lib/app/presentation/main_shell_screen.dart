@@ -45,9 +45,16 @@ class MainShellScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
     final session = ref.watch(currentSessionProvider);
+    final metadata = session?.user.userMetadata ?? const <String, dynamic>{};
+    final rawName =
+        (metadata['full_name'] ?? metadata['name'] ?? '').toString().trim();
+    final displayName = rawName.isNotEmpty
+        ? rawName
+        : _toDisplayName((session?.user.email ?? 'profile@perfyn.app').split('@').first);
 
     return Scaffold(
       endDrawer: _AppDrawer(
+        name: displayName,
         email: session?.user.email ?? 'profile@perfyn.app',
         isLoading: authState.isLoading,
         onLogout: () async {
@@ -91,11 +98,13 @@ class MainShellScreen extends ConsumerWidget {
 
 class _AppDrawer extends StatelessWidget {
   const _AppDrawer({
+    required this.name,
     required this.email,
     required this.isLoading,
     required this.onLogout,
   });
 
+  final String name;
   final String email;
   final bool isLoading;
   final Future<void> Function() onLogout;
@@ -139,7 +148,7 @@ class _AppDrawer extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'Your profile',
+                      name,
                       style: theme.textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                       ),
@@ -161,11 +170,7 @@ class _AppDrawer extends StatelessWidget {
                 subtitle: 'View and edit your account details',
                 onTap: () {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Profile/settings screen will be connected next.'),
-                    ),
-                  );
+                  context.pushNamed('settings');
                 },
               ),
               _DrawerTile(
@@ -174,11 +179,7 @@ class _AppDrawer extends StatelessWidget {
                 subtitle: 'Budget alerts and reminders',
                 onTap: () {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Notifications screen will be connected next.'),
-                    ),
-                  );
+                  context.pushNamed('notifications');
                 },
               ),
               _DrawerTile(
@@ -228,6 +229,11 @@ class _AppDrawer extends StatelessWidget {
       ),
     );
   }
+}
+
+String _toDisplayName(String value) {
+  if (value.isEmpty) return 'Profile';
+  return value[0].toUpperCase() + value.substring(1);
 }
 
 class _DrawerTile extends StatelessWidget {

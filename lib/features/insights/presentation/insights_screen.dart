@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/features/insights/providers/insights_provider.dart';
 import 'package:perfyn_app/features/transactions/providers/transaction_provider.dart';
+import 'package:perfyn_app/shared/extensions/currency_extension.dart';
 
 class InsightsScreen extends ConsumerWidget {
   const InsightsScreen({super.key});
@@ -70,6 +72,8 @@ class InsightsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 22),
               insightsAsync.when(
+                skipLoadingOnRefresh: true,
+                skipLoadingOnReload: true,
                 data: (data) => _InsightsContent(data: data),
                 loading: () => const _StatusCard(
                   title: 'Crunching numbers...',
@@ -207,7 +211,7 @@ class _MonthlyOverviewCard extends StatelessWidget {
               Expanded(
                 child: _MiniStat(
                   label: 'Income',
-                  value: 'Rs ${data.monthlyIncome.toStringAsFixed(0)}',
+                  value: data.monthlyIncome.toINR(),
                   accent: AppColors.mint,
                 ),
               ),
@@ -215,7 +219,7 @@ class _MonthlyOverviewCard extends StatelessWidget {
               Expanded(
                 child: _MiniStat(
                   label: 'Expense',
-                  value: 'Rs ${data.monthlyExpense.toStringAsFixed(0)}',
+                  value: data.monthlyExpense.toINR(),
                   accent: const Color(0xFFFFC07A),
                 ),
               ),
@@ -454,7 +458,7 @@ class _WeekColumn extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Rs ${amount.toStringAsFixed(0)}',
+          amount.toINR(),
           style: theme.textTheme.bodyLarge?.copyWith(
             color: AppColors.ink,
             fontWeight: FontWeight.w800,
@@ -547,7 +551,7 @@ class _TopCategoryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Rs ${category.amount.toStringAsFixed(0)}',
+                category.amount.toINR(),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: AppColors.coral,
                   fontWeight: FontWeight.w800,
@@ -682,8 +686,10 @@ class _CategoryRow extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        children: [
+      child: InkWell(
+        onTap: () => context.pushNamed('category-drill', extra: category.category),
+        child: Column(
+          children: [
           Row(
             children: [
               Expanded(
@@ -696,7 +702,7 @@ class _CategoryRow extends StatelessWidget {
                 ),
               ),
               Text(
-                'Rs ${category.amount.toStringAsFixed(0)}',
+                category.amount.toINR(),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: AppColors.ink,
                   fontWeight: FontWeight.w800,
@@ -732,10 +738,10 @@ class _CategoryRow extends StatelessWidget {
                     ),
                     child: Text(
                       category.amount >= category.budgetLimit!
-                          ? 'Over Budget (Rs ${category.budgetLimit!.toStringAsFixed(0)})'
+                          ? 'Over Budget (${category.budgetLimit!.toINR()})'
                           : category.amount >= category.budgetLimit! * 0.9
-                              ? 'Near Limit (Rs ${category.budgetLimit!.toStringAsFixed(0)})'
-                              : 'On Track (Rs ${category.budgetLimit!.toStringAsFixed(0)})',
+                              ? 'Near Limit (${category.budgetLimit!.toINR()})'
+                              : 'On Track (${category.budgetLimit!.toINR()})',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: category.amount >= category.budgetLimit! * 0.9
                             ? AppColors.coral
@@ -759,6 +765,7 @@ class _CategoryRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

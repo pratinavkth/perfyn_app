@@ -14,7 +14,7 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
   return TransactionRepository(client, dao, syncManager);
 });
 
-final transactionsProvider = StreamProvider.autoDispose<List<TransactionRecord>>((ref) {
+final transactionsProvider = StreamProvider<List<TransactionRecord>>((ref) {
   final session = ref.watch(currentSessionProvider);
   if (session == null) {
     return const Stream.empty();

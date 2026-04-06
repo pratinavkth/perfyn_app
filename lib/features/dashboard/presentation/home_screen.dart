@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/dashboard/presentation/widgets/balance_card.dart';
@@ -36,6 +37,8 @@ class HomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
             children: [
               overviewAsync.when(
+                skipLoadingOnRefresh: true,
+                skipLoadingOnReload: true,
                 data: (overview) {
                   return Column(
                     children: [
@@ -63,11 +66,22 @@ class HomeScreen extends ConsumerWidget {
                           ),
                           Builder(
                             builder: (context) {
-                              return IconButton.filledTonal(
-                                onPressed: () {
-                                  Scaffold.of(context).openEndDrawer();
-                                },
-                                icon: const Icon(Icons.person_outline_rounded),
+                              return Row(
+                                children: [
+                                  IconButton.filledTonal(
+                                    onPressed: () {
+                                      GoRouter.of(context).pushNamed('notifications');
+                                    },
+                                    icon: const Icon(Icons.notifications_none_rounded),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton.filledTonal(
+                                    onPressed: () {
+                                      Scaffold.of(context).openEndDrawer();
+                                    },
+                                    icon: const Icon(Icons.person_outline_rounded),
+                                  ),
+                                ],
                               );
                             },
                           ),

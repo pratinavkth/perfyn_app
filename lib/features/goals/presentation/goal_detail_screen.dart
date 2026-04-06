@@ -262,7 +262,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
                       labelText: 'Amount',
-                      prefixText: 'Rs ',
+                      prefixText: '₹ ',
                       border: OutlineInputBorder(),
                     ),
                   ),
