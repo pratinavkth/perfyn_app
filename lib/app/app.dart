@@ -17,9 +17,11 @@ class FinWiseApp extends ConsumerWidget {
 
     ref.listen(connectivityProvider, (previous, next) {
       final isOnline = next.valueOrNull ?? false;
-      final wasOffline = !(previous?.valueOrNull ?? true);
+      final previousOnline = previous?.valueOrNull;
+      final shouldFlush =
+          isOnline && (previousOnline == null || previousOnline == false);
 
-      if (isOnline && wasOffline) {
+      if (shouldFlush) {
         ref.read(syncManagerProvider).flushQueue();
       }
     });
