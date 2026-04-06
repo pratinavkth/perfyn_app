@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
+import 'package:perfyn_app/features/auth/presentation/forgot_password_screen.dart';
 import 'package:perfyn_app/features/auth/presentation/register_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
+import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -35,7 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(authControllerProvider.notifier);
 
-    await controller.signIn(
+    final session = await controller.signIn(
       email: _emailController.text,
       password: _passwordController.text,
     );
@@ -43,13 +45,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final state = ref.read(authControllerProvider);
     state.whenOrNull(
       data: (_) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Logged in successfully.')),
-        );
-        context.go('/home');
+        if (session != null) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Logged in successfully.')),
+          );
+          context.go(HomeScreen.routePath);
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'We could not sign you in. Check your email and password, or confirm your email first if this account is new.',
+              ),
+            ),
+          );
+        }
       },
       error: (error, _) {
-        messenger.showSnackBar(SnackBar(content: Text(error.toString())));
+        messenger.showSnackBar(
+          SnackBar(content: Text(authErrorMessage(error))),
+        );
       },
     );
   }
@@ -165,6 +179,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               }
                               return null;
                             },
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: authState.isLoading
+                                  ? null
+                                  : () {
+                                      context.pushNamed(
+                                        ForgotPasswordScreen.routeName,
+                                        extra: _emailController.text.trim(),
+                                      );
+                                    },
+                              child: const Text('Forgot password?'),
+                            ),
                           ),
                           const SizedBox(height: 24),
                           ElevatedButton(

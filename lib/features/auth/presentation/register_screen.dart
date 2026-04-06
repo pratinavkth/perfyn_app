@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
+import 'package:perfyn_app/features/auth/presentation/forgot_password_screen.dart';
 import 'package:perfyn_app/features/auth/presentation/login_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
+import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -17,6 +19,7 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -25,6 +28,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -38,7 +42,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(authControllerProvider.notifier);
 
-    await controller.signUp(
+    final session = await controller.signUp(
+      name: _nameController.text,
       email: _emailController.text,
       password: _passwordController.text,
     );
@@ -46,18 +51,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final state = ref.read(authControllerProvider);
     state.whenOrNull(
       data: (_) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Account created. Check your email if confirmation is enabled.',
+        if (session != null) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Account created successfully.')),
+          );
+          context.go(HomeScreen.routePath);
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Account created. Check your email to confirm it before signing in.',
+              ),
             ),
-          ),
-        );
-        context.go('/home');
+          );
+          context.go(LoginScreen.routePath);
+        }
       },
       error: (error, _) {
         messenger.showSnackBar(
-          SnackBar(content: Text(error.toString())),
+          SnackBar(content: Text(authErrorMessage(error))),
         );
       },
     );
@@ -129,6 +141,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 28),
+                          TextFormField(
+                            controller: _nameController,
+                            textCapitalization: TextCapitalization.words,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              prefixIcon: Icon(Icons.person_outline_rounded),
+                            ),
+                            validator: (value) {
+                              final name = value?.trim() ?? '';
+                              if (name.isEmpty) return 'Name is required';
+                              if (name.length < 2) {
+                                return 'Enter your full name';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
@@ -203,6 +232,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               }
                               return null;
                             },
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: authState.isLoading
+                                  ? null
+                                  : () {
+                                      context.pushNamed(
+                                        ForgotPasswordScreen.routeName,
+                                        extra: _emailController.text.trim(),
+                                      );
+                                    },
+                              child: const Text('Forgot password?'),
+                            ),
                           ),
                           const SizedBox(height: 24),
                           ElevatedButton(
