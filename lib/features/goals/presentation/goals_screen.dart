@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/goals/domain/entities/goal_record.dart';
+import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/features/goals/presentation/add_goal_sheet.dart';
+import 'package:perfyn_app/features/goals/presentation/goal_detail_screen.dart';
 import 'package:perfyn_app/features/goals/providers/goal_provider.dart';
 
 class GoalsScreen extends ConsumerWidget {
@@ -212,23 +214,34 @@ class _GoalCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final accent = _accentForType(goal.type);
+    final progress = goal.progress;
 
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x140A2538),
-            blurRadius: 24,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    final attainedMilestones = [
+      if (progress >= 0.25) '25%',
+      if (progress >= 0.50) '50%',
+      if (progress >= 0.75) '75%',
+      if (progress >= 1.0) 'Done!',
+    ];
+
+    return InkWell(
+      onTap: () => context.push(GoalDetailScreen.routePath, extra: goal),
+      borderRadius: BorderRadius.circular(28),
+      child: Ink(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x140A2538),
+              blurRadius: 24,
+              offset: Offset(0, 14),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             children: [
               Container(
@@ -279,36 +292,25 @@ class _GoalCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  if (value == 'delete') {
-                    final error = await ref
-                        .read(goalControllerProvider.notifier)
-                        .deleteGoal(goal.id);
-                    if (error != null && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error)),
-                      );
-                    }
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Icons.delete_outline_rounded,
-                            color: AppColors.danger, size: 18),
-                        SizedBox(width: 8),
-                        Text('Delete'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
           const SizedBox(height: 18),
+          if (attainedMilestones.isNotEmpty && !goal.isCompleted)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Wrap(
+                spacing: 8,
+                children: attainedMilestones.map((m) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: accent.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(m, style: theme.textTheme.labelSmall?.copyWith(color: accent, fontWeight: FontWeight.bold)),
+                )).toList(),
+              ),
+            ),
           // Progress bar
           Row(
             children: [
@@ -372,8 +374,9 @@ class _GoalCard extends ConsumerWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Color _accentForType(GoalType type) {
     switch (type) {

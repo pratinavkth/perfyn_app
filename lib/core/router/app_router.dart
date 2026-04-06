@@ -1,14 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/app/presentation/main_shell_screen.dart';
+import 'package:perfyn_app/features/transactions/domain/entities/transaction_record.dart';
+import 'package:perfyn_app/features/goals/domain/entities/goal_record.dart';
 import 'package:perfyn_app/features/auth/presentation/login_screen.dart';
 import 'package:perfyn_app/features/auth/presentation/register_screen.dart';
 import 'package:perfyn_app/features/auth/presentation/splash_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
 import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 import 'package:perfyn_app/features/goals/presentation/goals_screen.dart';
+import 'package:perfyn_app/features/goals/presentation/goal_detail_screen.dart';
 import 'package:perfyn_app/features/insights/presentation/insights_screen.dart';
 import 'package:perfyn_app/features/transactions/presentation/transactions_screen.dart';
+import 'package:perfyn_app/features/transactions/presentation/add_edit_transaction_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authRefresh = ref.watch(authRefreshProvider);
@@ -30,7 +34,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isProtectedRoute = location == HomeScreen.routePath ||
           location == TransactionsScreen.routePath ||
           location == GoalsScreen.routePath ||
-          location == InsightsScreen.routePath;
+          location == GoalDetailScreen.routePath ||
+          location == InsightsScreen.routePath ||
+          location == AddEditTransactionScreen.routePath;
 
       if (!isLoggedIn && isProtectedRoute) {
         return LoginScreen.routePath;
@@ -57,6 +63,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RegisterScreen.routePath,
         name: RegisterScreen.routeName,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AddEditTransactionScreen.routePath,
+        name: 'add-edit-transaction',
+        builder: (context, state) => AddEditTransactionScreen(
+          transaction: state.extra as TransactionRecord?,
+        ),
+      ),
+      GoRoute(
+        path: GoalDetailScreen.routePath,
+        name: 'goal-detail',
+        builder: (context, state) => GoalDetailScreen(
+          goal: state.extra as GoalRecord,
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

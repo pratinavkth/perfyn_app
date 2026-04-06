@@ -1,17 +1,44 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/transactions/domain/entities/transaction_record.dart';
+import 'package:perfyn_app/features/transactions/presentation/add_edit_transaction_screen.dart';
 import 'package:perfyn_app/features/transactions/presentation/quick_add_sheet.dart';
 import 'package:perfyn_app/features/transactions/providers/transaction_provider.dart';
 
-class TransactionsScreen extends ConsumerWidget {
+class TransactionsScreen extends ConsumerStatefulWidget {
   const TransactionsScreen({super.key});
 
   static const routePath = '/transactions';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TransactionsScreen> createState() => _TransactionsScreenState();
+}
+
+class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _selectedFilter = 'All'; // 'All', 'Income', 'Expense'
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final transactionsAsync = ref.watch(transactionsProvider);
 
@@ -28,95 +55,174 @@ class TransactionsScreen extends ConsumerWidget {
           onRefresh: () async {
             await ref.refresh(transactionsProvider.future);
           },
-          child: ListView(
+          child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Row(
                       children: [
-                        Text(
-                          'Transactions',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: AppColors.ink,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Transactions',
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  color: AppColors.ink,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'View, search, and manage your entries.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.slate,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Live entries from your Supabase table, with quick add ready from here or the global FAB.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.slate,
-                          ),
+                        Builder(
+                          builder: (context) {
+                            return IconButton.filledTonal(
+                              onPressed: () {
+                                Scaffold.of(context).openEndDrawer();
+                              },
+                              icon: const Icon(Icons.person_outline_rounded),
+                            );
+                          },
                         ),
                       ],
                     ),
-                  ),
-                  Builder(
-                    builder: (context) {
-                      return IconButton.filledTonal(
-                        onPressed: () {
-                          Scaffold.of(context).openEndDrawer();
-                        },
-                        icon: const Icon(Icons.person_outline_rounded),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 22),
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFF4E7), Color(0xFFF0FAFF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: AppColors.ink.withValues(alpha: 0.05),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Quick add flow',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: AppColors.ink,
+                    const SizedBox(height: 22),
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search by category or notes...',
+                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.slate),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: AppColors.ink.withValues(alpha: 0.1)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: AppColors.ink.withValues(alpha: 0.1)),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Capture amount, type, category, date, and optional notes, then the list below refreshes from Supabase.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.slate,
+                    const SizedBox(height: 16),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: ['All', 'Income', 'Expense'].map((filter) {
+                          final isSelected = _selectedFilter == filter;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              label: Text(filter),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                if (selected) {
+                                  setState(() => _selectedFilter = filter);
+                                }
+                              },
+                              backgroundColor: Colors.white,
+                              selectedColor: AppColors.ocean.withValues(alpha: 0.2),
+                              labelStyle: TextStyle(
+                                color: isSelected ? AppColors.ocean : AppColors.slate,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected ? AppColors.ocean : AppColors.ink.withValues(alpha: 0.1),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFF4E7), Color(0xFFF0FAFF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: AppColors.ink.withValues(alpha: 0.05),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quick add flow',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: AppColors.ink,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Capture amount, type, category, date, and optional notes quickly.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.slate,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              QuickAddSheet.show(context);
+                            },
+                            icon: const Icon(Icons.flash_on_rounded),
+                            label: const Text('Open quick add'),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 18),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        QuickAddSheet.show(context);
-                      },
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Open quick add'),
-                    ),
-                  ],
+                  ]),
                 ),
               ),
-              const SizedBox(height: 18),
-              transactionsAsync.when(
-                data: (items) => _TransactionList(items: items),
-                loading: () => const _StatusCard(
-                  title: 'Loading transactions...',
-                  subtitle: 'Reading from your Supabase table.',
-                ),
-                error: (error, _) => _StatusCard(
-                  title: 'Could not load transactions',
-                  subtitle: error.toString(),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                sliver: transactionsAsync.when(
+                  data: (items) {
+                    final filteredItems = items.where((item) {
+                      if (_selectedFilter == 'Income' && item.isExpense) return false;
+                      if (_selectedFilter == 'Expense' && !item.isExpense) return false;
+                      if (_searchQuery.isNotEmpty) {
+                        final searchMatch = item.category.toLowerCase().contains(_searchQuery) ||
+                            (item.notes?.toLowerCase().contains(_searchQuery) ?? false);
+                        if (!searchMatch) return false;
+                      }
+                      return true;
+                    }).toList();
+
+                    return SliverToBoxAdapter(
+                      child: _TransactionList(items: filteredItems),
+                    );
+                  },
+                  loading: () => const SliverToBoxAdapter(
+                    child: _StatusCard(
+                      title: 'Loading transactions...',
+                      subtitle: 'Reading from your Supabase table.',
+                    ),
+                  ),
+                  error: (error, _) => SliverToBoxAdapter(
+                    child: _StatusCard(
+                      title: 'Could not load transactions',
+                      subtitle: error.toString(),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -161,7 +267,7 @@ class _TransactionList extends StatelessWidget {
           const SizedBox(height: 14),
           if (items.isEmpty)
             Text(
-              'No transactions yet. Add your first one and it will appear here.',
+              'No transactions found.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.slate,
               ),
@@ -174,7 +280,7 @@ class _TransactionList extends StatelessWidget {
   }
 }
 
-class _TransactionRow extends StatelessWidget {
+class _TransactionRow extends ConsumerWidget {
   const _TransactionRow({
     required this.item,
   });
@@ -182,58 +288,122 @@ class _TransactionRow extends StatelessWidget {
   final TransactionRecord item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final accent = item.isExpense ? AppColors.coral : AppColors.success;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              item.isExpense ? Icons.south_east_rounded : Icons.north_east_rounded,
-              color: accent,
-            ),
+    return Dismissible(
+      key: ValueKey(item.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: AppColors.coral,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Transaction'),
+            content: const Text('Are you sure you want to delete this transaction?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: AppColors.coral),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.notes?.trim().isNotEmpty == true ? item.notes!.trim() : item.category,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppColors.ink,
-                    fontWeight: FontWeight.w700,
-                  ),
+        );
+      },
+      onDismissed: (_) {
+        ref.read(transactionControllerProvider.notifier).deleteTransaction(
+              localId: item.localId!,
+              remoteId: item.id.startsWith('local_') ? null : item.id,
+            );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            context.push(AddEditTransactionScreen.routePath, extra: item);
+          },
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${item.category} • ${_formatDate(item.date)}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.slate,
-                  ),
+                child: Icon(
+                  item.isExpense ? Icons.south_east_rounded : Icons.north_east_rounded,
+                  color: accent,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.notes?.trim().isNotEmpty == true ? item.notes!.trim() : item.category,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${item.category} • ${_formatDate(item.date)}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.slate,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${item.isExpense ? '- ' : '+ '}Rs ${item.amount.toStringAsFixed(0)}',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
           ),
-          Text(
-            '${item.isExpense ? '- ' : '+ '}Rs ${item.amount.toStringAsFixed(0)}',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day} ${months[date.month - 1]}';
   }
 }
 
@@ -283,23 +453,4 @@ class _StatusCard extends StatelessWidget {
       ),
     );
   }
-}
-
-String _formatDate(DateTime date) {
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-
-  return '${date.day} ${months[date.month - 1]} ${date.year}';
 }

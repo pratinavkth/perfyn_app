@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/insights/providers/insights_provider.dart';
 import 'package:perfyn_app/features/transactions/providers/transaction_provider.dart';
@@ -608,12 +609,51 @@ class _CategoryBreakdownCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
+          SizedBox(
+            height: 200,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 2,
+                centerSpaceRadius: 50,
+                sections: _buildPieSections(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           ...categories.map(
             (cat) => _CategoryRow(category: cat),
           ),
         ],
       ),
     );
+  }
+
+  List<PieChartSectionData> _buildPieSections() {
+    final colors = [
+      AppColors.ocean,
+      AppColors.coral,
+      AppColors.mint,
+      const Color(0xFF7986CB),
+      const Color(0xFFFFB74D),
+      AppColors.success,
+      const Color(0xFFF06292),
+      const Color(0xFF8D6E63),
+    ];
+
+    return categories.map((cat) {
+      final colorIndex = cat.category.hashCode.abs() % colors.length;
+      return PieChartSectionData(
+        color: colors[colorIndex],
+        value: cat.amount,
+        title: '${(cat.percentage * 100).toStringAsFixed(0)}%',
+        radius: 40,
+        titleStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      );
+    }).toList();
   }
 }
 
@@ -672,6 +712,42 @@ class _CategoryRow extends StatelessWidget {
               ),
             ],
           ),
+          if (category.budgetLimit != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: category.amount >= category.budgetLimit! * 0.9
+                          ? AppColors.coral.withValues(alpha: 0.1)
+                          : AppColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: category.amount >= category.budgetLimit! * 0.9
+                            ? AppColors.coral.withValues(alpha: 0.5)
+                            : AppColors.success.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      category.amount >= category.budgetLimit!
+                          ? 'Over Budget (Rs ${category.budgetLimit!.toStringAsFixed(0)})'
+                          : category.amount >= category.budgetLimit! * 0.9
+                              ? 'Near Limit (Rs ${category.budgetLimit!.toStringAsFixed(0)})'
+                              : 'On Track (Rs ${category.budgetLimit!.toStringAsFixed(0)})',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: category.amount >= category.budgetLimit! * 0.9
+                            ? AppColors.coral
+                            : AppColors.success,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(999),
