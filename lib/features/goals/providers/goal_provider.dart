@@ -15,7 +15,7 @@ final goalRepositoryProvider = Provider<GoalRepository>((ref) {
 });
 
 /// Watches all goals for the current user from SQLite drift database.
-final goalsProvider = StreamProvider.autoDispose<List<GoalRecord>>((ref) {
+final goalsProvider = StreamProvider<List<GoalRecord>>((ref) {
   final session = ref.watch(currentSessionProvider);
   if (session == null) return const Stream.empty();
 

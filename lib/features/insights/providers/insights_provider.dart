@@ -5,7 +5,7 @@ import 'package:perfyn_app/features/transactions/domain/entities/transaction_rec
 import 'package:perfyn_app/features/transactions/providers/transaction_provider.dart';
 
 /// Computed insights derived from the user's transactions.
-final insightsProvider = FutureProvider.autoDispose<InsightsData>((ref) async {
+final insightsProvider = FutureProvider<InsightsData>((ref) async {
   final transactions = await ref.watch(transactionsProvider.future);
   final goals = await ref.watch(goalsProvider.future);
 

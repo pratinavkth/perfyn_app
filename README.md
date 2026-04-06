@@ -1,287 +1,505 @@
-# Perfyn Progress Snapshot
+# Perfyn
 
-## What has been done
+Perfyn is a Flutter-based personal finance companion mobile app built for the Personal Finance Companion Mobile App assignment. It is designed as a lightweight daily money tracker rather than a banking app, with a focus on mobile-first UX, clean architecture, practical insights, and offline-friendly behavior.
 
-### Offline-First Architecture (Drift + Supabase)
-- **Embedded Database:** Added `drift` (SQLite) as the primary edge database for lightning-fast performance without network latency.
-- **DAOs:** Created `TransactionsDao` and `GoalsDao` mapping to local tables (`transactions`, `goals`) and `SyncQueueDao` mapping to a background queue.
-- **Sync Manager:** Added `SyncManager` which runs a `flushQueue()` process natively in the background upon internet connectivity restoration (monitored by `app.dart`). It resolves Supabase IDs and updates local SQL rows autonomously.
-- **Riverpod Streaming:** Replaced network-heavy `FutureProvider` fetchers with `StreamProvider` listeners observing SQLite `watchAll` queries. Offline mutations are instantaneously reflected without spinners. 
-### App shell
-- `lib/main.dart`
-  - Loads `.env`
-  - Initializes Supabase
-  - Starts the app with `ProviderScope`
-  - Launches `FinWiseApp`
+## Project Overview
 
-- `lib/app/app.dart`
-  - Switched from plain `MaterialApp` to `MaterialApp.router`
-  - Connected app theme
-  - Connected app router
+Perfyn helps users:
 
-### Providers
-- `lib/app/providers/app_providers.dart`
-  - Added `supabaseClientProvider`
+- track income and expense transactions
+- understand balance, income, expenses, and savings progress
+- create savings, budget, and no-spend goals
+- view weekly and monthly spending insights
+- use the app with local persistence and backend sync
 
-- `lib/features/auth/providers/auth_provider.dart`
-  - Added `currentSessionProvider`
-  - Added `authStateChangesProvider`
-  - Added `authControllerProvider`
-  - Added router refresh listener for auth state changes
-  - Added auth methods:
-    - `signIn`
-    - `signUp`
-    - `signOut`
-  - Uses Supabase persisted session for login retention
+This project was built to reflect both product thinking and implementation quality. The app emphasizes clarity, polish, and everyday usability over unnecessary feature bloat.
 
-### Theme
-- `lib/core/theme/app_colors.dart`
-  - Added shared project color palette
+## Assignment Coverage
 
-- `lib/core/theme/app_theme.dart`
-  - Added light theme
-  - Added dark theme
-  - Styled input fields and buttons
+### 1. Home Dashboard
+
+Implemented with:
+
+- current balance
+- total income
+- total expenses
+- savings rate
+- weekly spending chart
+- recent transactions preview
+
+### 2. Transaction Tracking
+
+Implemented with:
+
+- add transaction
+- quick add flow
+- transaction history
+- edit transaction
+- delete transaction
+- amount, type, category, date, and notes fields
+
+### 3. Goal / Challenge Feature
+
+Implemented through the goals module:
+
+- savings goals
+- budget goals
+- no-spend challenges
+- progress tracking
+- goal detail and progress updates
+
+### 4. Insights Screen
+
+Implemented with:
+
+- biggest spending category
+- monthly totals
+- weekly comparison
+- category breakdown
+- category drill-down screen
+
+### 5. Smooth Mobile UX
+
+Included in the app:
+
+- splash screen
+- onboarding flow
+- bottom tab navigation
+- auth flow with login, signup, forgot password, and reset password
+- pull to refresh on major screens
+- loading, empty, and error states
+- touch-friendly mobile layouts
+
+### 6. Local Data Handling / API Integration
+
+Implemented with:
+
+- Drift + SQLite for local persistence
+- Supabase Auth for user authentication
+- Supabase tables for synced remote data
+- sync queue for offline-first mutation handling
+- connectivity-aware queue flushing
+
+### 7. Code Structure And State Management
+
+Implemented with:
+
+- Flutter + Dart
+- feature-based folder structure
+- Riverpod for state and async data handling
+- GoRouter for navigation and auth-aware redirects
+- repository/provider separation for cleaner business logic
+
+## Implemented Features
+
+### Authentication
+
+- onboarding before first sign in
+- email/password signup
+- name capture during signup
+- email/password login
+- forgot password request flow
+- reset password screen from deep link callback
+- custom user-friendly auth errors
+- profile name and email display
+
+### Dashboard
+
+- personalized greeting
+- balance summary
+- income and expense overview
+- savings progress indicator
+- weekly chart
+- recent transaction list
+
+### Transactions
+
+- add, edit, and delete transactions
+- quick add bottom sheet
+- transaction history view
+- categorized entries
+- notes and date support
+
+### Goals
+
+- create goals
+- savings goal support
+- budget goal support
+- no-spend challenge support
+- goal detail page
+- progress update actions
+
+### Insights
+
+- category analysis
+- top spending driver
+- weekly comparison
+- monthly overview
+- category drill-down
+
+### Secondary Screens
+
+- settings/profile screen
+- notifications screen
+- drawer profile summary
+
+## Tech Stack
+
+- Flutter
+- Dart
+- Flutter Riverpod
+- GoRouter
+- Supabase
+- Drift
+- SQLite
+- Shared Preferences
+- FL Chart
+- Connectivity Plus
+
+## Architecture Overview
 
 ### Routing
-- `lib/core/router/app_router.dart`
-  - Added `GoRouter`
-  - Added routes for:
-    - splash
-    - login
-    - register
-    - dashboard home
-    - transactions (via StatefulShellRoute)
-    - goals (via StatefulShellRoute)
-    - insights (via StatefulShellRoute)
-  - Added auth-aware redirects for signed-in and signed-out users
-  - Redirects authenticated users directly to home
-  - Redirects unauthenticated users away from protected routes
-  - Fixed unused import warning
 
-### Auth screens
-- `lib/features/auth/presentation/splash_screen.dart`
-  - Created animated splash screen
-  - Added gradient background
-  - Added animated logo and text entrance
-  - Auto-navigates to login or home based on session
+- `GoRouter` with auth-aware redirects
+- onboarding gate before auth
+- protected screen handling
+- password recovery route handling
 
-- `lib/features/auth/presentation/login_screen.dart`
-  - Created login UI
-  - Added form validation
-  - Connected Supabase sign-in
-  - Added navigation to signup
-  - Added session check before redirecting to home
+### State Management
 
-- `lib/features/auth/presentation/register_screen.dart`
-  - Created signup UI
-  - Added form validation
-  - Connected Supabase sign-up
-  - Added navigation back to login
+- Riverpod `Provider`
+- `StateNotifierProvider`
+- `StreamProvider`
+- `FutureProvider`
 
-### Dashboard (Tab 1 — Home)
-- `lib/features/dashboard/presentation/home_screen.dart`
-  - Dashboard home screen with greeting header
-  - Profile icon opens end drawer
-  - Pull-to-refresh to reload data from Supabase
-  - Loading, error states handled
+### Data Flow
 
-- `lib/features/dashboard/providers/dashboard_provider.dart`
-  - `dashboardOverviewProvider` — computes overview from real transaction data
-  - Calculates total balance, monthly income/expense, savings rate
-  - Builds weekly spending data for chart
-  - Extracts recent transactions for display
+- local Drift tables drive reactive UI updates
+- repositories manage persistence and sync logic
+- queued writes support offline-first usage
+- Supabase acts as auth provider and remote backend
 
-- `lib/features/dashboard/presentation/widgets/balance_card.dart`
-  - Total balance card with gradient background
-  - Income and expense summary pills
-  - Savings rate progress bar
+## Data Strategy
 
-- `lib/features/dashboard/presentation/widgets/spending_chart.dart`
-  - Weekly spending bar chart (last 7 days)
-  - Gradient bars with highest-day highlight
+Perfyn follows a practical local-first architecture:
 
-- `lib/features/dashboard/presentation/widgets/recent_transactions.dart`
-  - Recent transactions list (last 5)
-  - Income/expense accent colors and icons
+1. The app writes and reads from local SQLite through Drift.
+2. Screens subscribe to local streams for responsive UI updates.
+3. Mutations are queued when they need to sync remotely.
+4. Supabase stores auth state and synced records.
+5. When connectivity returns, queued writes are flushed.
 
-### Transactions (Tab 2)
-- `lib/features/transactions/domain/entities/transaction_record.dart`
-  - `TransactionRecord` entity with `fromJson` factory
-  - Maps to Supabase `transactions` table columns
-  - `TransactionType` enum (income, expense)
+This approach aligns well with the assignment's flexibility around local storage or backend integration while still showing a stronger real-world sync model.
 
-- `lib/features/transactions/data/transaction_repository.dart`
-  - `addTransaction()` — inserts to Supabase `transactions` table
-  - `fetchTransactions()` — reads user's transactions ordered by date
-  - Date formatting helper
+## Database Design
 
-- `lib/features/transactions/providers/transaction_provider.dart`
-  - `transactionRepositoryProvider` — provides `TransactionRepository`
-  - `transactionsProvider` — `FutureProvider.autoDispose` for fetching transactions
-  - `quickAddControllerProvider` — `StateNotifierProvider` for add flow
-  - Invalidates dashboard on new transaction
+The app uses Supabase-backed tables together with local Drift tables for offline-first behavior.
 
-- `lib/features/transactions/presentation/transactions_screen.dart`
-  - Full transaction list with real Supabase data
-  - Search bar and filter chips (All, Income, Expense)
-  - Swipe-to-delete functionality (deletes locally immediately, pushes remote delete in background)
-  - Quick add action card
-  - Loading, error, empty states
-  - Pull-to-refresh
+### ER Diagram
 
-- `lib/features/transactions/presentation/quick_add_sheet.dart`
-  - Bottom sheet for fast transaction entry
-  - Amount input with Rs prefix
-  - Expense/Income type toggle pills
-  - Category selection chips
-  - Date picker and optional notes
-  - Saves to Supabase on submit
+```mermaid
+erDiagram
+    AUTH_USERS ||--|| PROFILES : has
+    AUTH_USERS ||--o{ TRANSACTIONS : owns
+    AUTH_USERS ||--o{ GOALS : owns
+    AUTH_USERS ||--o{ NO_SPEND_CHALLENGES : owns
+    AUTH_USERS ||--o{ NOTIFICATIONS : receives
+    AUTH_USERS ||--o{ SYNC_QUEUE : creates
+    GOALS ||--o| NO_SPEND_CHALLENGES : tracks
 
-### Goals (Tab 3)
-- `lib/features/goals/domain/entities/goal_record.dart`
-  - `GoalRecord` entity with `fromJson` factory
-  - Maps to Supabase `goals` table columns
-  - `GoalType` enum (savings, noSpend, budget)
-  - Helper getters: `progress`, `isCompleted`, `daysRemaining`
+    PROFILES {
+        uuid id PK
+        text full_name
+        text currency
+        text avatar_url
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-- `lib/features/goals/data/goal_repository.dart`
-  - `fetchGoals()` — reads user's goals from Supabase
-  - `addGoal()` — inserts new goal
-  - `updateGoalProgress()` — updates `current_amount`
-  - `deleteGoal()` — removes goal by ID
+    TRANSACTIONS {
+        uuid id PK
+        uuid user_id FK
+        numeric amount
+        text type
+        text category
+        date date
+        text notes
+        boolean is_synced
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-- `lib/features/goals/providers/goal_provider.dart`
-  - `goalRepositoryProvider` — provides `GoalRepository`
-  - `goalsProvider` — `FutureProvider.autoDispose` for fetching goals
-  - `goalControllerProvider` — `StateNotifierProvider` for add/update/delete
+    GOALS {
+        uuid id PK
+        uuid user_id FK
+        text title
+        text type
+        numeric target_amount
+        numeric current_amount
+        text category
+        date deadline
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
 
-- `lib/features/goals/presentation/goals_screen.dart`
-  - Goal progress cards with visual progress bars
-  - Percentage complete and days remaining display
-  - Delete goal via popup menu
-  - "Create goal" action card
-  - Loading, error, empty states
-  - Pull-to-refresh
+    NO_SPEND_CHALLENGES {
+        uuid id PK
+        uuid user_id FK
+        uuid goal_id FK
+        int current_streak
+        int longest_streak
+        date last_checked
+        boolean is_active
+        timestamptz created_at
+    }
 
-- `lib/features/goals/presentation/add_goal_sheet.dart`
-  - Bottom sheet to create new goals
-  - Goal type selector (Savings / Budget / No-spend)
-  - Title and target amount inputs
-  - Optional deadline date picker
-  - Saves to Supabase on submit
+    NOTIFICATIONS {
+        uuid id PK
+        uuid user_id FK
+        text title
+        text message
+        text type
+        boolean is_read
+        timestamptz created_at
+    }
 
-- `lib/features/goals/presentation/goal_detail_screen.dart`
-  - Dedicated screen with gorgeous animated circular progress rings. 
-  - Integrated Milestone tracking chips (25%, 50%, 75%, 100%).
-  - Provides progress updation logic baked into the state manager.
+    SYNC_QUEUE {
+        uuid id PK
+        uuid user_id FK
+        text table_name
+        text operation
+        jsonb payload
+        timestamptz created_at
+    }
+```
 
-### Insights (Tab 4)
-- `lib/features/insights/providers/insights_provider.dart`
-  - `insightsProvider` — computes analytics from transaction data
-  - Category-wise spending breakdown with percentages
-  - Weekly comparison (this week vs last week)
-  - Top spending category identification
-  - Monthly income, expense, and transaction count
-  - `weeklyChange` getter for trend calculation
+### Relationship Summary
 
-- `lib/features/insights/presentation/insights_screen.dart`
-  - Monthly overview card (income, expense, count) with gradient
-  - Weekly comparison bars with trend indicator (up/down/flat)
-  - Top spending category callout card
-  - Full category breakdown with percentage progress bars
-  - Loading, error, empty states
-  - Pull-to-refresh
+- `profiles.id` is a one-to-one extension of `auth.users.id`
+- one user can have many `transactions`
+- one user can have many `goals`
+- one user can have many `notifications`
+- one user can have many `sync_queue` records
+- a no-spend challenge belongs to one goal and one user
 
-### Navigation shell
-- `lib/app/presentation/main_shell_screen.dart`
-  - `StatefulShellRoute.indexedStack` for 4 tabs
-  - Bottom navigation bar: Home, Txn, Goals, Insights
-  - Floating action button for quick add
-  - End drawer with profile, notifications, about, logout
-  - Auth-aware logout flow
+## Supabase Schema
 
-### Shared widgets
-- `lib/shared/widgets/category_chip.dart`
-  - Reusable category selection chip with icon and color
-- `lib/shared/widgets/feature_placeholder_screen.dart`
-  - Generic placeholder for features not yet built
-- `lib/shared/constants/categories.dart`
-  - Predefined expense categories (Food, Travel, Shopping, Bills, Health, Entertainment)
-  - Predefined income categories (Salary, Freelance, Gift, Refund, Investment, Other)
+### `profiles`
 
-## Dependency adjustments
+```sql
+create table profiles (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  full_name     text,
+  currency      text default 'INR',
+  avatar_url    text,
+  created_at    timestamptz default now(),
+  updated_at    timestamptz default now()
+);
+```
 
-`pubspec.yaml` was updated:
-- Riverpod versions pinned to avoid Flutter SDK mismatch:
-  - `riverpod: ^2.6.1`
-  - `flutter_riverpod: ^2.6.1`
-  - `riverpod_annotation: ^2.6.1`
-- `build_runner` moved from `dependencies` to `dev_dependencies`
-- Removed redundant `dotenv` package (already using `flutter_dotenv`)
+### `transactions`
 
-## Current state
+```sql
+create table transactions (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade not null,
+  amount      numeric(12, 2) not null check (amount > 0),
+  type        text not null check (type in ('income', 'expense')),
+  category    text not null,
+  date        date not null,
+  notes       text,
+  is_synced   boolean default true,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+```
 
-All four navbar tab screens are functional and connected to Supabase:
+### `goals`
 
-| Tab | Screen | Supabase Table | Status |
-|-----|--------|----------------|--------|
-| Tab 1 — Home | `HomeScreen` | `transactions` (derived) | ✅ Read & Computed Locally |
-| Tab 2 — Txn | `TransactionsScreen` | `transactions` | ✅ Full CRUD (Add, Edit, Swipe-Delete) |
-| Tab 3 — Goals | `GoalsScreen` | `goals` | ✅ Detailed rings, Edit Progress UI |
-| Tab 4 — Insights | `InsightsScreen` | `transactions` (derived) | ✅ Live Local Rendering using `fl_chart` |
+```sql
+create table goals (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid references auth.users(id) on delete cascade not null,
+  title           text not null,
+  type            text not null check (type in ('savings', 'budget', 'no_spend')),
+  target_amount   numeric(12, 2),
+  current_amount  numeric(12, 2) default 0,
+  category        text,
+  deadline        date,
+  is_active       boolean default true,
+  created_at      timestamptz default now(),
+  updated_at      timestamptz default now()
+);
+```
 
-Additional working flows:
-- Auth flow (splash → login/register → home)
-- Session persistence (stays logged in)
-- Quick add transaction (from any tab via FAB)
-- Create goals (savings, budget, no-spend types)
-- Delete goals
-- Pull-to-refresh on all data screens
-- Loading, error, and empty states on all screens
-- `flutter analyze` passes with 0 issues
+### `no_spend_challenges`
 
-## Still pending
+```sql
+create table no_spend_challenges (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid references auth.users(id) on delete cascade not null,
+  goal_id         uuid references goals(id) on delete cascade not null,
+  current_streak  int default 0,
+  longest_streak  int default 0,
+  last_checked    date,
+  is_active       boolean default true,
+  created_at      timestamptz default now()
+);
+```
 
-### Feature modules to build next
-- Settings feature
-  - profile/settings screen (S-13)
-  - dark mode toggle
-  - currency preference
-- Notifications feature
-  - notifications screen (S-14)
-  - budget alerts, goal milestones
+### `notifications`
 
-### Architecture work still pending
-- Fill empty `data`, `domain`, and `usecases` scaffold files
-- Add repository implementations for auth layer
-- Connect `failures.dart` and `exceptions.dart` into the data layer
-- Add onboarding screen (S-02)
-- Connect observer/logger for Riverpod debugging
-- Wire shared widgets (amount_display, empty_state, error_state, loading_shimmer)
+```sql
+create table notifications (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id) on delete cascade not null,
+  title       text not null,
+  message     text not null,
+  type        text check (type in ('budget_alert', 'goal_milestone', 'streak_reminder')),
+  is_read     boolean default false,
+  created_at  timestamptz default now()
+);
+```
 
-### Backend integration work still pending
-- Add profile-based user data handling (profiles table)
-- Add notification fetch and display flow (notifications table)
-- Add no-spend challenge tracking (nospend_challenge table)
+### `sync_queue`
 
-## Supabase PostgreSQL tables
+```sql
+create table sync_queue (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid references auth.users(id) on delete cascade not null,
+  table_name    text not null,
+  operation     text check (operation in ('insert', 'update', 'delete')),
+  payload       jsonb not null,
+  created_at    timestamptz default now()
+);
+```
 
-We have created or planned the following PostgreSQL tables in Supabase:
+## Local Database Notes
 
-| Table | Connected in App | Purpose |
-|-------|-----------------|---------|
-| `transactions` | ✅ Yes | Stores income and expense records |
-| `goals` | ✅ Yes | Stores savings goals and progress data |
-| `profiles` | ❌ Not yet | Stores user profile details |
-| `nospend_challenge` | ❌ Not yet | Stores challenge progress and streak data |
-| `notifications` | ❌ Not yet | Stores app notification entries |
-| `sync_queue` | ❌ Not yet | Stores queued sync actions for offline ops |
+In the Flutter app, local Drift tables are used for:
 
-## Notes
+- transactions
+- goals
+- sync queue
 
-- Supabase session persistence is being used, so users remain logged in until the session is invalid or they explicitly log out.
-- You can turn off your device's WiFi and fully mutate Goals and Transactions without any app crashes. Data resolves directly on reconnections via `SyncManager` auto-dispatch!
-- Dashboard data is computed from real Supabase transaction data (not mocked).
-- Insights are derived from the same transactions provider — no separate Supabase queries needed.
-- All empty scaffold files (`data/`, `domain/`, `usecases/`) are preserved for future feature development.
+These local tables support offline reads, optimistic writes, and queued sync behavior before data reaches Supabase.
+
+## Project Structure
+
+```text
+lib/
+  app/
+    app.dart
+    presentation/
+    providers/
+  core/
+    database/
+    network/
+    router/
+    theme/
+  features/
+    auth/
+    dashboard/
+    goals/
+    insights/
+    notifications/
+    settings/
+    transactions/
+  shared/
+    constants/
+    extensions/
+    widgets/
+```
+
+## Setup
+
+### Prerequisites
+
+- Flutter SDK
+- Dart SDK
+- Android Studio or VS Code with Flutter tooling
+- a Supabase project
+
+### Environment Variables
+
+Create `assets/.env` with:
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### Install Dependencies
+
+```bash
+flutter pub get
+```
+
+### Run The App
+
+```bash
+flutter run
+```
+
+## Product Decisions And Assumptions
+
+- The app is a finance companion, not a banking app.
+- Email/password auth was selected for a straightforward mobile onboarding flow.
+- INR is currently the default currency in the UI and schema.
+- The goals feature was extended into savings, budget, and no-spend modes to better satisfy the assignment's product-thinking requirement.
+- Offline-first sync was prioritized to make the app feel more reliable on mobile.
+- Notifications and settings are included as supporting enhancements.
+
+## Optional Enhancements Included
+
+- onboarding flow
+- notifications screen
+- profile/settings screen
+- auth recovery flow
+- offline-aware sync queue
+
+## Evaluation Criteria Mapping
+
+### Product Thinking
+
+The app is positioned as an everyday money companion with lightweight but meaningful workflows.
+
+### Mobile UI / UX Quality
+
+The app includes onboarding, splash, bottom navigation, form flows, pull-to-refresh, and mobile-friendly visual hierarchy.
+
+### Creativity
+
+The goal system combines savings goals, budget tracking, and no-spend challenges in a way that feels integrated into the product.
+
+### Functionality
+
+Core flows across auth, dashboard, transactions, goals, insights, and profile are implemented.
+
+### Code Quality
+
+The project uses organized feature folders, provider-driven state, and reusable screen/component patterns.
+
+### State And Data Handling
+
+The app combines local persistence, backend sync, and Riverpod-managed async state cleanly.
+
+### Responsiveness And Device Experience
+
+Layouts are built for mobile use with scrollable forms, cards, sheets, and tab-based navigation.
+
+### Documentation
+
+This README now covers the project overview, architecture, setup, assumptions, schema, and ER diagram.
+
+## Known Limitations
+
+- This is an assessment project, not a production-ready finance product.
+- Some secondary flows such as notifications are lightweight and illustrative.
+- Currency support is currently centered around INR.
+- Production-grade analytics, export, advanced security hardening, and admin tooling are outside the current scope.
+
+## Conclusion
+
+Perfyn was built as a polished submission for the personal finance companion assignment. It demonstrates how a finance tracking idea can be translated into a coherent mobile product with strong UX fundamentals, organized state handling, local-first persistence, sync support, and a clear product direction.

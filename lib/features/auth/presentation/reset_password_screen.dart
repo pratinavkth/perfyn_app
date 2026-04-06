@@ -2,25 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
-import 'package:perfyn_app/features/auth/presentation/forgot_password_screen.dart';
 import 'package:perfyn_app/features/auth/presentation/login_screen.dart';
 import 'package:perfyn_app/features/auth/providers/auth_provider.dart';
-import 'package:perfyn_app/features/dashboard/presentation/home_screen.dart';
 
-class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+class ResetPasswordScreen extends ConsumerStatefulWidget {
+  const ResetPasswordScreen({super.key});
 
-  static const routeName = 'register';
-  static const routePath = '/register';
+  static const routeName = 'reset-password';
+  static const routePath = '/reset-password';
 
   @override
-  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
 }
 
-class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -28,8 +24,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -42,32 +36,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(authControllerProvider.notifier);
 
-    final session = await controller.signUp(
-      name: _nameController.text,
-      email: _emailController.text,
-      password: _passwordController.text,
-    );
+    await controller.updatePassword(password: _passwordController.text);
+    final updateState = ref.read(authControllerProvider);
 
-    final state = ref.read(authControllerProvider);
-    state.whenOrNull(
-      data: (_) {
-        if (session != null) {
-          messenger.showSnackBar(
-            const SnackBar(content: Text('Account created successfully.')),
-          );
-          context.go(HomeScreen.routePath);
-        } else {
-          messenger.showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Account created. Check your email to confirm it before signing in.',
-              ),
-            ),
-          );
-          context.go(LoginScreen.routePath);
-        }
+    await updateState.whenOrNull(
+      data: (_) async {
+        await controller.signOut();
+        if (!mounted) return;
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Password updated. Please sign in again.'),
+          ),
+        );
+        context.go(LoginScreen.routePath);
       },
-      error: (error, _) {
+      error: (error, _) async {
         messenger.showSnackBar(
           SnackBar(content: Text(authErrorMessage(error))),
         );
@@ -84,7 +67,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFF7F1), Color(0xFFF3FBF8), Color(0xFFE8F4FB)],
+            colors: [Color(0xFFF7FBFF), Color(0xFFF6FDF8), Color(0xFFFFF4EC)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -102,8 +85,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     boxShadow: const [
                       BoxShadow(
                         color: Color(0x140A2538),
-                        blurRadius: 32,
-                        offset: Offset(0, 18),
+                        blurRadius: 30,
+                        offset: Offset(0, 20),
                       ),
                     ],
                   ),
@@ -122,65 +105,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: const Icon(
-                              Icons.person_add_alt_1_rounded,
+                              Icons.password_rounded,
                               color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            'Create your account',
+                            'Choose a new password',
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: AppColors.ink,
                             ),
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Build a money routine that feels calm, clear, and easy to keep.',
+                            'Set your new password here, then sign in again.',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.ink.withValues(alpha: 0.74),
                             ),
                           ),
                           const SizedBox(height: 28),
                           TextFormField(
-                            controller: _nameController,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: const InputDecoration(
-                              labelText: 'Name',
-                              prefixIcon: Icon(Icons.person_outline_rounded),
-                            ),
-                            validator: (value) {
-                              final name = value?.trim() ?? '';
-                              if (name.isEmpty) return 'Name is required';
-                              if (name.length < 2) {
-                                return 'Enter your full name';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.alternate_email_rounded),
-                            ),
-                            validator: (value) {
-                              final email = value?.trim() ?? '';
-                              if (email.isEmpty) return 'Email is required';
-                              if (!email.contains('@')) {
-                                return 'Enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
                             decoration: InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: const Icon(Icons.shield_outlined),
+                              labelText: 'New password',
+                              prefixIcon: const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 onPressed: () {
                                   setState(() {
@@ -206,9 +155,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             controller: _confirmPasswordController,
                             obscureText: _obscureConfirmPassword,
                             decoration: InputDecoration(
-                              labelText: 'Confirm password',
-                              prefixIcon:
-                                  const Icon(Icons.verified_user_outlined),
+                              labelText: 'Confirm new password',
+                              prefixIcon: const Icon(Icons.verified_user_outlined),
                               suffixIcon: IconButton(
                                 onPressed: () {
                                   setState(() {
@@ -225,7 +173,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                             validator: (value) {
                               if ((value ?? '').isEmpty) {
-                                return 'Confirm your password';
+                                return 'Confirm your new password';
                               }
                               if (value != _passwordController.text) {
                                 return 'Passwords do not match';
@@ -233,27 +181,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               return null;
                             },
                           ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: authState.isLoading
-                                  ? null
-                                  : () {
-                                      context.pushNamed(
-                                        ForgotPasswordScreen.routeName,
-                                        extra: _emailController.text.trim(),
-                                      );
-                                    },
-                              child: const Text('Forgot password?'),
-                            ),
-                          ),
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: authState.isLoading ? null : _submit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.coral,
-                              foregroundColor: Colors.white,
-                            ),
                             child: authState.isLoading
                                 ? const SizedBox(
                                     width: 22,
@@ -263,16 +193,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text('Create account'),
-                          ),
-                          const SizedBox(height: 18),
-                          Center(
-                            child: TextButton(
-                              onPressed: () {
-                                context.go(LoginScreen.routePath);
-                              },
-                              child: const Text('Already have an account? Sign in'),
-                            ),
+                                : const Text('Update password'),
                           ),
                         ],
                       ),

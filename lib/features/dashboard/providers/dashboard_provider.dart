@@ -6,7 +6,10 @@ import 'package:perfyn_app/features/transactions/providers/transaction_provider.
 final dashboardOverviewProvider = FutureProvider<DashboardOverview>((ref) async {
   final session = ref.watch(currentSessionProvider);
   final email = session?.user.email ?? 'friend@perfyn.app';
-  final name = email.split('@').first;
+  final metadata = session?.user.userMetadata ?? const <String, dynamic>{};
+  final rawName =
+      (metadata['full_name'] ?? metadata['name'] ?? '').toString().trim();
+  final name = rawName.isNotEmpty ? rawName : email.split('@').first;
   final transactions = await ref.watch(transactionsProvider.future);
 
   final now = DateTime.now();

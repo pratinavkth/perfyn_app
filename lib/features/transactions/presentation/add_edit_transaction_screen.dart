@@ -142,7 +142,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
                         fontWeight: FontWeight.w900,
                       ),
                       decoration: InputDecoration(
-                        prefixText: 'Rs ',
+                        prefixText: '₹ ',
                         prefixStyle: theme.textTheme.titleLarge?.copyWith(
                           color: Colors.white.withValues(alpha: 0.84),
                           fontWeight: FontWeight.w700,
