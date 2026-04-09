@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
@@ -68,6 +69,7 @@ class MainShellScreen extends ConsumerWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) {
+          HapticFeedback.selectionClick();
           navigationShell.goBranch(
             index,
             initialLocation: index == navigationShell.currentIndex,
@@ -85,6 +87,7 @@ class MainShellScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
+          HapticFeedback.selectionClick();
           QuickAddSheet.show(context);
         },
         backgroundColor: AppColors.ink,
@@ -169,6 +172,7 @@ class _AppDrawer extends StatelessWidget {
                 title: 'Profile',
                 subtitle: 'View and edit your account details',
                 onTap: () {
+                  HapticFeedback.selectionClick();
                   Navigator.of(context).pop();
                   context.pushNamed('settings');
                 },
@@ -178,6 +182,7 @@ class _AppDrawer extends StatelessWidget {
                 title: 'Notifications',
                 subtitle: 'Budget alerts and reminders',
                 onTap: () {
+                  HapticFeedback.selectionClick();
                   Navigator.of(context).pop();
                   context.pushNamed('notifications');
                 },
@@ -187,6 +192,7 @@ class _AppDrawer extends StatelessWidget {
                 title: 'About us',
                 subtitle: 'Learn more about Perfyn',
                 onTap: () {
+                  HapticFeedback.selectionClick();
                   Navigator.of(context).pop();
                   showAboutDialog(
                     context: context,
@@ -203,6 +209,7 @@ class _AppDrawer extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () async {
+                          HapticFeedback.selectionClick();
                           Navigator.of(context).pop();
                           await onLogout();
                         },

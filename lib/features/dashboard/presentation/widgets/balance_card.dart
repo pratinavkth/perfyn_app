@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 
 import 'package:perfyn_app/shared/extensions/currency_extension.dart';
+import 'package:perfyn_app/shared/widgets/pressable_scale.dart';
 
 class BalanceCard extends StatelessWidget {
   const BalanceCard({
@@ -10,12 +11,14 @@ class BalanceCard extends StatelessWidget {
     required this.monthlyIncome,
     required this.monthlyExpense,
     required this.savingsRate,
+    this.onTap,
   });
 
   final double totalBalance;
   final double monthlyIncome;
   final double monthlyExpense;
   final double savingsRate;
+  final VoidCallback? onTap;
 
   String _formatAmount(double amount) {
     return amount.toINR();
@@ -26,78 +29,93 @@ class BalanceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final normalizedSavingsRate = savingsRate.clamp(0.0, 1.0).toDouble();
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF10324A), Color(0xFF1A6D86)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return PressableScale(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF10324A), Color(0xFF1A6D86)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x2210324A),
+              blurRadius: 28,
+              offset: Offset(0, 18),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x2210324A),
-            blurRadius: 28,
-            offset: Offset(0, 18),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Total balance',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.78),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _formatAmount(totalBalance),
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 22),
-          Row(
-            children: [
-              Expanded(
-                child: _MetricPill(
-                  label: 'Income',
-                  value: _formatAmount(monthlyIncome),
-                  accent: AppColors.mint,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Total balance',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.78),
+                    ),
+                  ),
                 ),
+                if (onTap != null)
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white70,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              _formatAmount(totalBalance),
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _MetricPill(
-                  label: 'Expense',
-                  value: _formatAmount(monthlyExpense),
-                  accent: const Color(0xFFFFC07A),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                Expanded(
+                  child: _MetricPill(
+                    label: 'Income',
+                    value: _formatAmount(monthlyIncome),
+                    accent: AppColors.mint,
+                  ),
                 ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _MetricPill(
+                    label: 'Expense',
+                    value: _formatAmount(monthlyExpense),
+                    accent: const Color(0xFFFFC07A),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'Savings rate ${(normalizedSavingsRate * 100).toStringAsFixed(0)}%',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withValues(alpha: 0.84),
               ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            'Savings rate ${(normalizedSavingsRate * 100).toStringAsFixed(0)}%',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.84),
             ),
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: normalizedSavingsRate,
-              minHeight: 10,
-              backgroundColor: Colors.white.withValues(alpha: 0.18),
-              color: AppColors.sand,
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: normalizedSavingsRate,
+                minHeight: 10,
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
+                color: AppColors.sand,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,59 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
 import 'package:perfyn_app/features/dashboard/providers/dashboard_provider.dart';
+import 'package:perfyn_app/shared/widgets/pressable_scale.dart';
 
 class RecentTransactions extends StatelessWidget {
   const RecentTransactions({
     super.key,
     required this.items,
+    this.onTap,
   });
 
   final List<DashboardTransaction> items;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x120A2538),
-            blurRadius: 24,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Recent transactions',
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: AppColors.ink,
+    return PressableScale(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(28),
+      child: Container(
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x120A2538),
+              blurRadius: 24,
+              offset: Offset(0, 14),
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'The latest money moves at a glance.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.slate,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recent transactions',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'The latest money moves at a glance.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.slate,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (onTap != null)
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.slate,
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          if (items.isEmpty)
-            Text(
-              'No transactions yet. Use Quick add to create your first one.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.slate,
-              ),
-            )
-          else
-            ...items.map((item) => _TransactionRow(item: item)),
-        ],
+            const SizedBox(height: 16),
+            if (items.isEmpty)
+              Text(
+                'No transactions yet. Use Quick add to create your first one.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.slate,
+                ),
+              )
+            else
+              ...items.map((item) => _TransactionRow(item: item)),
+          ],
+        ),
       ),
     );
   }

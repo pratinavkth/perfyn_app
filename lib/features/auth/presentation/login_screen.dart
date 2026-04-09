@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
@@ -33,6 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
+    HapticFeedback.selectionClick();
 
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(authControllerProvider.notifier);
@@ -46,6 +48,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     state.whenOrNull(
       data: (_) {
         if (session != null) {
+          HapticFeedback.lightImpact();
           messenger.showSnackBar(
             const SnackBar(content: Text('Logged in successfully.')),
           );
@@ -61,6 +64,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       },
       error: (error, _) {
+        HapticFeedback.mediumImpact();
         messenger.showSnackBar(
           SnackBar(content: Text(authErrorMessage(error))),
         );
@@ -186,6 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onPressed: authState.isLoading
                                   ? null
                                   : () {
+                                      HapticFeedback.selectionClick();
                                       context.pushNamed(
                                         ForgotPasswordScreen.routeName,
                                         extra: _emailController.text.trim(),
@@ -213,6 +218,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Center(
                             child: TextButton(
                               onPressed: () {
+                                HapticFeedback.selectionClick();
                                 context.go(RegisterScreen.routePath);
                               },
                               child: const Text(

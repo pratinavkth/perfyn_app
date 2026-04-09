@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
@@ -224,6 +225,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
 
     if (_goal.type == GoalType.noSpend) {
       // For no-spend, just add 1 day
+      HapticFeedback.selectionClick();
       final newAmount = _goal.currentAmount + 1;
       _updateProgressCall(newAmount);
       return;
@@ -277,6 +279,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
                   onPressed: () {
                     final val = double.tryParse(controller.text);
                     if (val != null && val > 0) {
+                      HapticFeedback.selectionClick();
                       final newAmount = isAdding
                           ? _goal.currentAmount + val
                           : (_goal.currentAmount - val).clamp(0.0, double.infinity);
@@ -295,6 +298,7 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
   }
 
   Future<void> _updateProgressCall(double newAmount) async {
+    HapticFeedback.selectionClick();
     final error = await ref.read(goalControllerProvider.notifier).updateProgress(
           localId: _goal.localId!,
           remoteId: _goal.id.startsWith('local_') ? null : _goal.id,
@@ -304,11 +308,19 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
     if (!mounted) return;
 
     if (error != null) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
     } else {
       _updateGoalProgress(newAmount);
+      HapticFeedback.lightImpact();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Progress updated!')),
+        SnackBar(
+          content: Text(
+            _goal.type == GoalType.noSpend
+                ? 'Challenge progress updated.'
+                : 'Goal progress updated successfully.',
+          ),
+        ),
       );
     }
   }
@@ -343,8 +355,13 @@ class _GoalDetailScreenState extends ConsumerState<GoalDetailScreen> {
     if (!mounted) return;
 
     if (error != null) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
     } else {
+      HapticFeedback.lightImpact();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Goal deleted successfully.')),
+      );
       Navigator.of(context).pop();
     }
   }

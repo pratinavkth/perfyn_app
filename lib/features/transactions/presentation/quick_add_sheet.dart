@@ -357,6 +357,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   }
 
   Future<void> _pickDate() async {
+    HapticFeedback.selectionClick();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -365,6 +366,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
     );
 
     if (picked != null) {
+      HapticFeedback.selectionClick();
       setState(() {
         _selectedDate = picked;
       });
@@ -372,6 +374,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   }
 
   Future<void> _submit() async {
+    HapticFeedback.selectionClick();
     final amount = double.tryParse(_amountController.text.trim());
 
     if (amount == null || amount <= 0) {
@@ -395,10 +398,12 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
     if (!mounted) return;
 
     if (errorMessage != null) {
+      HapticFeedback.mediumImpact();
       _showMessage(errorMessage);
       return;
     }
 
+    HapticFeedback.lightImpact();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     navigator.pop();
@@ -412,6 +417,7 @@ class _QuickAddSheetState extends ConsumerState<QuickAddSheet> {
   }
 
   void _showMessage(String message) {
+    HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );

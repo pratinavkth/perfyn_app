@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
+import 'package:perfyn_app/features/sms_import/presentation/sms_import_sheet.dart';
 import 'package:perfyn_app/features/transactions/domain/entities/transaction_record.dart';
 import 'package:perfyn_app/features/transactions/presentation/add_edit_transaction_screen.dart';
 import 'package:perfyn_app/features/transactions/presentation/quick_add_sheet.dart';
@@ -165,25 +167,43 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Quick add flow',
+                            'Quick actions',
                             style: theme.textTheme.titleLarge?.copyWith(
                               color: AppColors.ink,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Capture amount, type, category, date, and optional notes quickly.',
+                            'Capture a transaction manually or pull likely bank alerts from SMS for review.',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.slate,
                             ),
                           ),
                           const SizedBox(height: 18),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              QuickAddSheet.show(context);
-                            },
-                            icon: const Icon(Icons.flash_on_rounded),
-                            label: const Text('Open quick add'),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    HapticFeedback.selectionClick();
+                                    QuickAddSheet.show(context);
+                                  },
+                                  icon: const Icon(Icons.flash_on_rounded),
+                                  label: const Text('Quick add'),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    HapticFeedback.selectionClick();
+                                    SmsImportSheet.show(context);
+                                  },
+                                  icon: const Icon(Icons.sms_rounded),
+                                  label: const Text('Import SMS'),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -326,16 +346,25 @@ class _TransactionRow extends ConsumerWidget {
         );
       },
       onDismissed: (_) {
+        HapticFeedback.lightImpact();
         ref.read(transactionControllerProvider.notifier).deleteTransaction(
               localId: item.localId!,
               remoteId: item.id.startsWith('local_') ? null : item.id,
             );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${item.notes?.trim().isNotEmpty == true ? item.notes!.trim() : item.category} deleted.',
+            ),
+          ),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
+            HapticFeedback.selectionClick();
             context.push(AddEditTransactionScreen.routePath, extra: item);
           },
           child: Row(

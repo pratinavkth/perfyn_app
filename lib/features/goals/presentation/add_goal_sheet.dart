@@ -287,6 +287,7 @@ class _AddGoalSheetState extends ConsumerState<AddGoalSheet> {
   }
 
   Future<void> _pickDeadline() async {
+    HapticFeedback.selectionClick();
     final picked = await showDatePicker(
       context: context,
       initialDate: _deadline ?? DateTime.now().add(const Duration(days: 30)),
@@ -295,11 +296,13 @@ class _AddGoalSheetState extends ConsumerState<AddGoalSheet> {
     );
 
     if (picked != null) {
+      HapticFeedback.selectionClick();
       setState(() => _deadline = picked);
     }
   }
 
   Future<void> _submit() async {
+    HapticFeedback.selectionClick();
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       _showMessage('Give your goal a name.');
@@ -327,10 +330,12 @@ class _AddGoalSheetState extends ConsumerState<AddGoalSheet> {
     if (!mounted) return;
 
     if (errorMessage != null) {
+      HapticFeedback.mediumImpact();
       _showMessage(errorMessage);
       return;
     }
 
+    HapticFeedback.lightImpact();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     navigator.pop();
@@ -342,6 +347,7 @@ class _AddGoalSheetState extends ConsumerState<AddGoalSheet> {
   }
 
   void _showMessage(String message) {
+    HapticFeedback.mediumImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );

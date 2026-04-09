@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
@@ -38,6 +39,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
+    HapticFeedback.selectionClick();
 
     final messenger = ScaffoldMessenger.of(context);
     final controller = ref.read(authControllerProvider.notifier);
@@ -52,11 +54,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     state.whenOrNull(
       data: (_) {
         if (session != null) {
+          HapticFeedback.lightImpact();
           messenger.showSnackBar(
             const SnackBar(content: Text('Account created successfully.')),
           );
           context.go(HomeScreen.routePath);
         } else {
+          HapticFeedback.lightImpact();
           messenger.showSnackBar(
             const SnackBar(
               content: Text(
@@ -68,6 +72,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         }
       },
       error: (error, _) {
+        HapticFeedback.mediumImpact();
         messenger.showSnackBar(
           SnackBar(content: Text(authErrorMessage(error))),
         );
@@ -239,6 +244,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               onPressed: authState.isLoading
                                   ? null
                                   : () {
+                                      HapticFeedback.selectionClick();
                                       context.pushNamed(
                                         ForgotPasswordScreen.routeName,
                                         extra: _emailController.text.trim(),
@@ -269,6 +275,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           Center(
                             child: TextButton(
                               onPressed: () {
+                                HapticFeedback.selectionClick();
                                 context.go(LoginScreen.routePath);
                               },
                               child: const Text('Already have an account? Sign in'),

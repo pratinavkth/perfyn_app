@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:perfyn_app/core/theme/app_colors.dart';
@@ -70,6 +71,7 @@ class HomeScreen extends ConsumerWidget {
                                 children: [
                                   IconButton.filledTonal(
                                     onPressed: () {
+                                      HapticFeedback.selectionClick();
                                       GoRouter.of(context).pushNamed('notifications');
                                     },
                                     icon: const Icon(Icons.notifications_none_rounded),
@@ -77,6 +79,7 @@ class HomeScreen extends ConsumerWidget {
                                   const SizedBox(width: 8),
                                   IconButton.filledTonal(
                                     onPressed: () {
+                                      HapticFeedback.selectionClick();
                                       Scaffold.of(context).openEndDrawer();
                                     },
                                     icon: const Icon(Icons.person_outline_rounded),
@@ -93,11 +96,27 @@ class HomeScreen extends ConsumerWidget {
                         monthlyIncome: overview.monthlyIncome,
                         monthlyExpense: overview.monthlyExpense,
                         savingsRate: overview.savingsRate,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          context.go('/transactions');
+                        },
                       ),
                       const SizedBox(height: 18),
-                      SpendingChart(weeklySpending: overview.weeklySpending),
+                      SpendingChart(
+                        weeklySpending: overview.weeklySpending,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          context.go('/insights');
+                        },
+                      ),
                       const SizedBox(height: 18),
-                      RecentTransactions(items: overview.recentTransactions),
+                      RecentTransactions(
+                        items: overview.recentTransactions,
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          context.go('/transactions');
+                        },
+                      ),
                     ],
                   );
                 },

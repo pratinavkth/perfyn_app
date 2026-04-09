@@ -343,6 +343,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
   }
 
   Future<void> _pickDate() async {
+    HapticFeedback.selectionClick();
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -351,6 +352,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
     );
 
     if (picked != null) {
+      HapticFeedback.selectionClick();
       setState(() {
         _selectedDate = picked;
       });
@@ -358,6 +360,7 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
   }
 
   Future<void> _saveTransaction() async {
+    HapticFeedback.selectionClick();
     final amount = double.tryParse(_amountController.text.trim()) ?? 0;
 
     String? errorMessage;
@@ -385,10 +388,21 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
     if (!mounted) return;
 
     if (errorMessage != null) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
       return;
     }
 
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isEditing
+              ? 'Transaction updated successfully.'
+              : 'Transaction saved successfully.',
+        ),
+      ),
+    );
     Navigator.of(context).pop();
   }
 
@@ -425,10 +439,15 @@ class _AddEditTransactionScreenState extends ConsumerState<AddEditTransactionScr
     if (!mounted) return;
 
     if (errorMessage != null) {
+      HapticFeedback.mediumImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
       return;
     }
 
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Transaction deleted successfully.')),
+    );
     Navigator.of(context).pop();
   }
 
